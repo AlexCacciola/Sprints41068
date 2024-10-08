@@ -1,0 +1,16 @@
+This program utilises a ROS2 node to extract data from laser scan to determine if a 30cm cylinder is within detecting range of the robot.\hypertarget{index_ac_doc_functionality}{}\doxysection{Program functionality}\label{index_ac_doc_functionality}
+This program subscribes to the laserscan topic and reads in data points, organising them into clusters and then determining if those clusters are 30cm wide. If they are then the program publishes a marker to rviz on that cylinders location.
+
+The functionality is shown in the below pictures\+: \hypertarget{index_ac_doc_images}{}\doxysection{images}\label{index_ac_doc_images}
+\hypertarget{index_ac_doc_Running}{}\doxysection{Using the node}\label{index_ac_doc_Running}
+To run this program multiple linux terminals must be used.
+
+Terminal 1\+: export TURTLEBOT3\+\_\+\+MODEL=waffle\+\_\+pi ros2 launch turtlebot3\+\_\+gazebo turtlebot3\+\_\+parkworld.\+launch.\+py
+
+Terminal 2\+: export TURTLEBOT3\+\_\+\+MODEL=waffle\+\_\+pi ros2 launch turtlebot3\+\_\+navigation2 \textbackslash{}navigation2.launch.\+py \textbackslash{} use\+\_\+sim\+\_\+time\+:=true map\+:=\$\+HOME/smallparkmap.yaml
+
+Termial 3\+: ros2 run cylinder\+\_\+detector cylinder\+\_\+detector
+
+RVIZ\+: Add marker and subscribe to cylinder\+\_\+marker Robot will spawn facing \char`\"{}up\char`\"{} on the map in the top right hand corner. Using NAV2\+GOAL to move robot around or use TELEOP.
+
+Gazebo\+: Spawn in a cylinder at with a radius of 0.\+15m and place in the workspace were required. 

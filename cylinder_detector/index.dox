@@ -1,0 +1,46 @@
+/*!
+
+*/
+
+// without this gap between two doxygen definition, the last group does not get
+// populated properly for some reason.
+
+/*!
+@mainpage Sprint 3 Alex Cacciola 24569826
+
+This program utilises a ROS2 node to extract data from laser scan to determine if a 30cm cylinder is within detecting range of the robot. 
+
+@section ac_doc_functionality Program functionality
+
+This program subscribes to the laserscan topic and reads in data points, organising them into clusters and then determining if those clusters are 30cm wide. If they are then the program publishes a marker to rviz on that cylinders location. 
+
+The functionality is shown in the below pictures: 
+@section ac_doc_images images
+@image html image1.png "Detection of cylinder, ignoring the larger cylinder nearby as the size is wrong. "
+
+
+@section ac_doc_Running Using the node
+To run this program multiple linux terminals must be used. 
+
+Terminal 1: 
+export TURTLEBOT3_MODEL=waffle_pi
+ros2 launch turtlebot3_gazebo turtlebot3_parkworld.launch.py
+
+Terminal 2:
+export TURTLEBOT3_MODEL=waffle_pi
+ros2 launch turtlebot3_navigation2 \navigation2.launch.py \ use_sim_time:=true map:=$HOME/smallparkmap.yaml
+
+Termial 3:
+ros2 run cylinder_detector cylinder_detector
+
+RVIZ:
+Add marker and subscribe to cylinder_marker
+Robot will spawn facing "up" on the map in the top right hand corner. Using NAV2GOAL to move robot around or use TELEOP. 
+
+Gazebo:
+Spawn in a cylinder at with a radius of 0.15m and place in the workspace were required. 
+
+*/
+
+@section ac_doc_expectations Expectations
+This program is able to detect cylinders that are 30cm in diameter. However, in the initial stages of movement while the robot is localising it will occasionally detect cylinders along the walls or where ever there are super tight clusters of laserscan points. I have not been able to find a way to fix this issue. 
