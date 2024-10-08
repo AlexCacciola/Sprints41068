@@ -1,3 +1,11 @@
+/**
+* @file cylinder_detection.cpp
+* @brief ROS2 node for detecting a cylinder from laserscan data
+* This node subscibes to the /scan topic to recieve laserscan data, processing this data to detect
+* cylinders of a given radius, in this case 30cm. It will then publish the detected cylinder's position
+* with a marker and pose. 
+* @author Alex Cacciola - 24569826
+*/
 #include <rclcpp/rclcpp.hpp>
 #include <sensor_msgs/msg/laser_scan.hpp>
 #include <visualization_msgs/msg/marker.hpp>
@@ -10,9 +18,24 @@
 #include <cmath>
 #include <vector>
 
+/**
+ * @class CylinderDetector
+ * @brief A ROS 2 node for detecting cylindrical objects from laser scan data.
+ * 
+ * This node listens to laser scan data, processes it to detect cylinders
+ * within a certain size range (in this case 30cm), and publishes the detected cylinder's position with
+ * a marker and a pose.
+ */
 class CylinderDetector : public rclcpp::Node
 {
 public:
+    /**
+     * @brief Constructor for the CylinderDetector node.
+     * 
+     * Initializes the node, sets up the laser scan subscriber, marker publisher, pose publisher,
+     * and transform broadcaster. It also initializes the cylinder's size parameters which can be 
+     * changed here to adjust for additinal sizes.
+     */
     CylinderDetector() : Node("cylinder_detector"),tf_buffer_(std::make_shared<rclcpp::Clock>(RCL_ROS_TIME)),  
       tf_listener_(tf_buffer_)                                    
     {
@@ -21,12 +44,21 @@ public:
         marker_pub_ = this->create_publisher<visualization_msgs::msg::Marker>("/cylinder_marker", 10);
         pose_pub_ = this->create_publisher<geometry_msgs::msg::PoseStamped>("/cylinder_pose", 10);
         tf_broadcaster_ = std::make_shared<tf2_ros::TransformBroadcaster>(this);
-        cylinder_diameter_ = 0.30;  
-        cylinder_radius_ = cylinder_diameter_ / 2.0;
+        cylinder_diameter_ = 0.30;  ///< Diameter of the cylinder to detect (in meters)
+        cylinder_radius_ = cylinder_diameter_ / 2.0; ///< Radius of the cylinder to detect (in meters)
     }
 
     private:
-
+        /**
+         * @brief Callback function for processing laser scan data.
+         * 
+         * This function is called each time a laser scan message is received. It converts
+         * the laser scan data from polar coordinates to Cartesian coordinates and attempts to
+         * detect a cylinder. If a cylinder is detected, its position is published
+         * as a marker and broadcasted as a transform.
+         * 
+         * @param scan_msg The laser scan message received from the `/scan` topic.
+         */
         void scanCallback(const sensor_msgs::msg::LaserScan::SharedPtr scan_msg)
         {
             std::vector<float> ranges = scan_msg->ranges;
@@ -62,7 +94,18 @@ public:
                 publishCylinderTF(cylinder_x, cylinder_y);
             }
         }
-
+        /**
+         * @brief Detects a cylinder from Cartesian coordinates.
+         * 
+         * This function scans through the Cartesian points from laserscan and groups them into clusters based
+         * on their proximity. If the width of a cluster matches the expected size of the
+         * cylinder, it is detected and its index is returned.
+         * 
+         * @param xs The x-coordinates of the laser scan points.
+         * @param ys The y-coordinates of the laser scan points.
+         * 
+         * @return The index of the first point of the detected cylinder, or -1 if no cylinder is detected.
+         */
         int detectCylinder(const std::vector<double>& xs, const std::vector<double>& ys)
         {
             size_t n = xs.size();
@@ -74,8 +117,8 @@ public:
                 distances[i] = std::sqrt(std::pow(xs[i + 1] - xs[i], 2) + std::pow(ys[i + 1] - ys[i], 2));
             }
 
-            // threshold to consider consecutive points as part of the same cluster
-            double distance_threshold = 0.15;  // 15 cm
+    
+            double distance_threshold = 0.15;  ///< Distance threshold to group points into clusters
 
             // loop over the points and find clusters
             for (size_t i = 0; i < n - 1; ++i)
@@ -111,7 +154,15 @@ public:
 
             return -1;  
         }
-
+        /**
+         * @brief Publishes a marker to visualize the detected cylinder in RViz.
+         * 
+         * Creates and publishes a cylinder marker at the detected cylinder's position.
+         * The position is transformed from the robot's base frame to the map frame.
+         * 
+         * @param x The x-coordinate of the detected cylinder.
+         * @param y The y-coordinate of the detected cylinder.
+         */
         void publishCylinderMarker(double x, double y)
         {
             // create a marker
@@ -164,7 +215,14 @@ public:
                 RCLCPP_WARN(this->get_logger(), "Could not transform base_link to map: %s", ex.what());
             }
         }
-
+        /**
+         * @brief Broadcasts a transform for the detected cylinder.
+         * 
+         * Publishes a transform between the `base_link` and the detected cylinder's position.
+         * 
+         * @param x The x-coordinate of the detected cylinder.
+         * @param y The y-coordinate of the detected cylinder.
+         */
         void publishCylinderTF(double x, double y)
         {
             // create and broadcast a TransformStamped for the detected cylinder
@@ -181,15 +239,15 @@ public:
             tf_broadcaster_->sendTransform(transformStamped);
         }
 
-        rclcpp::Subscription<sensor_msgs::msg::LaserScan>::SharedPtr scan_sub_;
-        rclcpp::Publisher<visualization_msgs::msg::Marker>::SharedPtr marker_pub_;
-        rclcpp::Publisher<geometry_msgs::msg::PoseStamped>::SharedPtr pose_pub_;
-        std::shared_ptr<tf2_ros::TransformBroadcaster> tf_broadcaster_;
+        rclcpp::Subscription<sensor_msgs::msg::LaserScan>::SharedPtr scan_sub_; ///< Subscription to laser scan messages
+        rclcpp::Publisher<visualization_msgs::msg::Marker>::SharedPtr marker_pub_; ///< Publisher for visualisaiton marker
+        rclcpp::Publisher<geometry_msgs::msg::PoseStamped>::SharedPtr pose_pub_; ///< Publisher for cylinder pose
+        std::shared_ptr<tf2_ros::TransformBroadcaster> tf_broadcaster_; ///< Transform broadcaster
 
-        tf2_ros::Buffer tf_buffer_;  
-        tf2_ros::TransformListener tf_listener_;  
-        double cylinder_diameter_;
-        double cylinder_radius_;
+        tf2_ros::Buffer tf_buffer_; ///< Buffer for stroring transforms
+        tf2_ros::TransformListener tf_listener_; ///< Listener for incoming transforms
+        double cylinder_diameter_; ///< Diameter of detected cylinder
+        double cylinder_radius_; ///< Radius of detected cylinder
 
     
 };
