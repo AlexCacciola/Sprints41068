@@ -1,0 +1,40 @@
+SPRINT3
+3.2  SLAM
+export TURTLEBOT3_MODEL=waffle_pi
+ros2 launch turtlebot3_gazebo turtlebot3_parkworld.launch.py
+
+ros2 run turtlebot3_teleop teleop_keyboard
+
+ros2 launch nav2_bringup navigation_launch.py use_sim_time:=True
+
+ros2 launch slam_toolbox online_async_launch.py use_sim_time:=True
+
+ros2 run rviz2 rviz2 -d /opt/ros/humble/share/nav2_bringup/rviz/nav2_default_view.rviz
+
+------------ros2 run nav2_map_server map_saver_cli -f $HOME/smallparkmapdemo
+after slam
+ros2 run rviz2 rviz2
+--create 2 map nodes gazebo_map slam_map
+ros2 run nav2_map_server map_server --ros-args -p yaml_filename:=$HOME/smallparkworldtruth.yaml -r map:=/gazebo_map
+ros2 run nav2_map_server map_server --ros-args -p yaml_filename:=$HOME/smallparkmap.yaml -r map:=/slam_map
+ros2 lifecycle set /map_server configure
+ros2 lifecycle set /map_server activate
+
+3.5 
+source install/setup.bash
+ros2 launch turtlebot3_gazebo turtlebot3_parkworld.launch.py
+
+export TURTLEBOT3_MODEL=waffle_pi
+ros2 launch turtlebot3_navigation2 \navigation2.launch.py \ use_sim_time:=true map:=$HOME/smallparkmap.yaml
+
+2d estimate -> nav2 goal
+
+3.6
+export TURTLEBOT3_MODEL=waffle_pi
+ros2 launch turtlebot3_gazebo turtlebot3_parkworld.launch.py
+
+export TURTLEBOT3_MODEL=waffle_pi
+ros2 launch turtlebot3_navigation2 \navigation2.launch.py \ use_sim_time:=true map:=$HOME/smallparkmap.yaml
+
+ros2 run cylinder_detector cylinder_detector
+in rvis, add marker and subscribe to cylinder_marker
