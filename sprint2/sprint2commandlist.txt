@@ -1,0 +1,42 @@
+export SDL_AUDIODRIVER=none
+
+SLO 2.2
+export TURTLEBOT3_MODEL=waffle_pi 
+ros2 launch turtlebot3_gazebo turtlebot3_parkworld.launch.py
+ros2 run turtlebot3_teleop teleop_keyboard
+
+ros2 launch turtlebot3_bringup rviz2.launch.py
+
+SLO 3.2 & 3.3 (Different blocks in different terminals)
+export TURTLEBOT3_MODEL=waffle_pi
+ros2 launch turtlebot3_gazebo turtlebot3_world.launch.py
+
+ros2 launch nav2_bringup navigation_launch.py use_sim_time:=True
+
+ros2 launch slam_toolbox online_async_launch.py use_sim_time:=True
+
+ros2 run rviz2 rviz2 -d /opt/ros/humble/share/nav2_bringup/rviz/nav2_default_view.rviz
+uncheck the “Global Planner” and the “Controller” 
+
+export TURTLEBOT3_MODEL=waffle_pi
+ros2 run turtlebot3_teleop teleop_keyboard
+
+ros2 run sprint2_33 subscriber_node
+
+ros2 run nav2_map_server map_saver_cli -f $HOME/my_map
+
+SLO 3.5
+CLOSE nav2_bringup and slam_toolbox
+
+export TURTLEBOT3_MODEL=waffle_pi 
+ros2 launch turtlebot3_navigation2 navigation2.launch.py map:=$HOME/newparkmap.yaml
+
+export TURTLEBOT3_MODEL=waffle_pi
+ros2 run turtlebot3_teleop teleop_keyboard
+
+SLO 3.6
+close navigation
+ros2 run sprint2 map_processor_node
+
+export TURTLEBOT3_MODEL=waffle_pi 
+ros2 launch turtlebot3_navigation2 navigation2.launch.py map:=$HOME/my_map.yaml
